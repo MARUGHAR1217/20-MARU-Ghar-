@@ -1,3 +1,4 @@
+
 name: Build Maru Ghar Android APK
 
 on:
@@ -28,20 +29,34 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Check project files
+      - name: Install Android build tools
         run: |
-          test -f package.json
-          test -f capacitor.config.json
+          sudo apt-get update
+          sudo apt-get install -y rsync
 
-      - name: Install dependencies
+      - name: Install Capacitor dependencies
         run: npm install
 
-      - name: Check Android project
+      - name: Prepare website files
         run: |
-          test -f android/gradlew
-          test -f android/app/build.gradle || test -f android/app/build.gradle.kts
+          mkdir -p www
+          rsync -av ./ www/ \
+            --exclude='/www/' \
+            --exclude='/node_modules/' \
+            --exclude='/.git/' \
+            --exclude='/.github/' \
+            --exclude='/android/' \
+            --exclude='/package.json' \
+            --exclude='/package-lock.json' \
+            --exclude='/.gitignore'
 
-      - name: Build Android APK
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Sync website with Android
+        run: npx cap sync android
+
+      - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
