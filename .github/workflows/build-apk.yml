@@ -29,13 +29,16 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Install Android build tools
+      - name: Install system tools
         run: |
           sudo apt-get update
           sudo apt-get install -y rsync
 
-      - name: Install Capacitor dependencies
+      - name: Install dependencies
         run: npm install
+
+      - name: Install icon generator
+        run: npm install --save-dev @capacitor/assets
 
       - name: Prepare website files
         run: |
@@ -53,7 +56,18 @@ jobs:
       - name: Create Android project
         run: npx cap add android
 
-      - name: Sync website with Android
+      - name: Prepare approved app icon
+        run: |
+          mkdir -p assets
+          test -f maru-ghar-approved-app-icon.png
+          cp maru-ghar-approved-app-icon.png assets/icon.png
+          test -f splash.png
+          cp splash.png assets/splash.png
+
+      - name: Generate Android icons
+        run: npx capacitor-assets generate --android
+
+      - name: Sync Android project
         run: npx cap sync android
 
       - name: Build APK
